@@ -30,19 +30,19 @@ const App = () => (
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route
-            path="/"
+            path="/*"
             element={
               <ProtectedRoute>
                 <SidebarProvider>
                   <div className="min-h-screen flex w-full">
                     <AppSidebar />
-                    <main className="flex-1 bg-white">
+                    <main className="flex-1 bg-white p-6">
                       <Routes>
-                        <Route index element={<Index />} />
-                        <Route path="/messages" element={<div>Messages Page</div>} />
-                        <Route path="/projects" element={<div>Projects Page</div>} />
-                        <Route path="/clients" element={<div>Clients Page</div>} />
-                        <Route path="/accounts" element={<div>Accounts Page</div>} />
+                        <Route path="/" element={<Index />} />
+                        <Route path="/messages" element={<div className="p-4">Messages Page</div>} />
+                        <Route path="/projects" element={<div className="p-4">Projects Page</div>} />
+                        <Route path="/clients" element={<div className="p-4">Clients Page</div>} />
+                        <Route path="/accounts" element={<div className="p-4">Accounts Page</div>} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </main>
