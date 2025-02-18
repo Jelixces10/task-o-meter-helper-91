@@ -10,7 +10,9 @@ const Landing = () => {
       <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-sm z-50 border-b">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-primary">Doable</h1>
+            <Link to="/" className="text-2xl font-bold text-primary hover:text-primary/90 transition-colors">
+              Doable
+            </Link>
             <div className="hidden md:flex items-center space-x-8">
               <a href="#about" className="text-gray-600 hover:text-primary transition-colors">About</a>
               <a href="#services" className="text-gray-600 hover:text-primary transition-colors">Services</a>
