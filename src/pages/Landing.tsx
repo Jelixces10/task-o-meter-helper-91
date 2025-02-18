@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, Briefcase, Mail, Phone, Users } from "lucide-react";
@@ -23,7 +24,7 @@ const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6">
+      <section className="h-screen flex items-center justify-center px-6">
         <div className="container mx-auto text-center">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
             Make It <span className="text-primary">Doable</span>
@@ -40,8 +41,8 @@ const Landing = () => {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-6">
+      <section id="about" className="h-screen flex items-center justify-center bg-gray-50 px-6">
+        <div className="container mx-auto">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-block p-3 bg-primary/10 rounded-full mb-6">
               <Users className="w-6 h-6 text-primary" />
@@ -56,8 +57,8 @@ const Landing = () => {
       </section>
 
       {/* Services Section */}
-      <section id="services" className="py-20">
-        <div className="container mx-auto px-6">
+      <section id="services" className="h-screen flex items-center justify-center px-6">
+        <div className="container mx-auto">
           <div className="text-center mb-16">
             <div className="inline-block p-3 bg-primary/10 rounded-full mb-6">
               <Briefcase className="w-6 h-6 text-primary" />
@@ -82,8 +83,8 @@ const Landing = () => {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-6">
+      <section id="contact" className="h-screen flex items-center justify-center bg-gray-50 px-6">
+        <div className="container mx-auto">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-block p-3 bg-primary/10 rounded-full mb-6">
               <Mail className="w-6 h-6 text-primary" />
