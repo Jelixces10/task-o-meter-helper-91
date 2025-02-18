@@ -1,3 +1,4 @@
+
 import { MessageSquare, ListTodo, Users, UserCircle, FolderKanban } from "lucide-react";
 import {
   Sidebar,
@@ -14,27 +15,27 @@ import { Link } from "react-router-dom";
 const items = [
   {
     title: "Dashboard",
-    url: "/",
+    url: "/dashboard",
     icon: ListTodo,
   },
   {
     title: "Messages",
-    url: "/messages",
+    url: "/dashboard/messages",
     icon: MessageSquare,
   },
   {
     title: "Projects",
-    url: "/projects",
+    url: "/dashboard/projects",
     icon: FolderKanban,
   },
   {
     title: "Clients",
-    url: "/clients",
+    url: "/dashboard/clients",
     icon: Users,
   },
   {
     title: "Accounts",
-    url: "/accounts",
+    url: "/dashboard/accounts",
     icon: UserCircle,
   },
 ];
