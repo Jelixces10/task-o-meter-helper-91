@@ -11,12 +11,12 @@ const Landing = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-primary">Doable</h1>
-            <div className="hidden md:flex space-x-8">
+            <div className="hidden md:flex items-center space-x-8">
               <a href="#about" className="text-gray-600 hover:text-primary transition-colors">About</a>
               <a href="#services" className="text-gray-600 hover:text-primary transition-colors">Services</a>
               <a href="#contact" className="text-gray-600 hover:text-primary transition-colors">Contact</a>
               <Link to="/login">
-                <Button variant="default">Login</Button>
+                <Button variant="default" size="sm" className="h-auto py-2">Login</Button>
               </Link>
             </div>
           </div>
