@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, Briefcase, Mail, Phone, Users } from "lucide-react";
@@ -32,9 +31,11 @@ const Landing = () => {
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             Transform your ideas into reality with our comprehensive project management solution.
           </p>
-          <Button size="lg" className="animate-fade-in">
-            Get Started <ArrowRight className="ml-2" />
-          </Button>
+          <Link to="/login">
+            <Button size="lg" className="animate-fade-in">
+              Get Started <ArrowRight className="ml-2" />
+            </Button>
+          </Link>
         </div>
       </section>
 
