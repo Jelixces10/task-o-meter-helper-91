@@ -92,12 +92,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      check_if_user_is_admin: {
-        Args: {
-          user_id: string
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       user_role: "admin" | "employee"
