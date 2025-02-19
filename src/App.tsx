@@ -10,6 +10,8 @@ import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
+import Employee from "./pages/Employee";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +44,8 @@ const App = () => (
                     <main className="flex-1 bg-white p-6">
                       <Routes>
                         <Route path="/" element={<Index />} />
+                        <Route path="/admin" element={<Admin />} />
+                        <Route path="/employee" element={<Employee />} />
                         <Route path="/messages" element={<div className="p-4">Messages Page</div>} />
                         <Route path="/projects" element={<div className="p-4">Projects Page</div>} />
                         <Route path="/clients" element={<div className="p-4">Clients Page</div>} />
