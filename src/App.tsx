@@ -6,6 +6,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { createContext, useContext, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -15,53 +18,143 @@ import Employee from "./pages/Employee";
 
 const queryClient = new QueryClient();
 
-// This would typically come from your auth context/provider
-const isAuthenticated = true; // Temporarily set to true for testing
+type AuthContextType = {
+  user: User | null;
+  loading: boolean;
+  userRole: 'admin' | 'employee' | null;
+};
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  if (!isAuthenticated) {
+export const AuthContext = createContext<AuthContextType>({ 
+  user: null, 
+  loading: true,
+  userRole: null
+});
+
+const ProtectedRoute = ({ 
+  children, 
+  allowedRoles 
+}: { 
+  children: React.ReactNode;
+  allowedRoles?: ('admin' | 'employee')[];
+}) => {
+  const { user, loading, userRole } = useContext(AuthContext);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
+
+  if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return children;
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/dashboard/*"
-            element={
-              <ProtectedRoute>
-                <SidebarProvider>
-                  <div className="min-h-screen flex w-full">
-                    <AppSidebar />
-                    <main className="flex-1 bg-white p-6">
-                      <Routes>
-                        <Route path="/" element={<Index />} />
-                        <Route path="/admin" element={<Admin />} />
-                        <Route path="/employee" element={<Employee />} />
-                        <Route path="/messages" element={<div className="p-4">Messages Page</div>} />
-                        <Route path="/projects" element={<div className="p-4">Projects Page</div>} />
-                        <Route path="/clients" element={<div className="p-4">Clients Page</div>} />
-                        <Route path="/accounts" element={<div className="p-4">Accounts Page</div>} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </main>
-                  </div>
-                </SidebarProvider>
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<'admin' | 'employee' | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check active sessions and get user role
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        getUserRole(session.user.id);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          getUserRole(session.user.id);
+        } else {
+          setUserRole(null);
+          setLoading(false);
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const getUserRole = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching user role:', error);
+      setLoading(false);
+      return;
+    }
+
+    setUserRole(data.role);
+    setLoading(false);
+  };
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthContext.Provider value={{ user, loading, userRole }}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/dashboard/*"
+                element={
+                  <ProtectedRoute>
+                    <SidebarProvider>
+                      <div className="min-h-screen flex w-full">
+                        <AppSidebar />
+                        <main className="flex-1 bg-white p-6">
+                          <Routes>
+                            <Route path="/" element={<Index />} />
+                            <Route 
+                              path="/admin" 
+                              element={
+                                <ProtectedRoute allowedRoles={['admin']}>
+                                  <Admin />
+                                </ProtectedRoute>
+                              } 
+                            />
+                            <Route 
+                              path="/employee" 
+                              element={
+                                <ProtectedRoute allowedRoles={['employee']}>
+                                  <Employee />
+                                </ProtectedRoute>
+                              } 
+                            />
+                            <Route path="*" element={<NotFound />} />
+                          </Routes>
+                        </main>
+                      </div>
+                    </SidebarProvider>
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthContext.Provider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
