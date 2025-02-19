@@ -52,8 +52,9 @@ export default function Login() {
         email,
         password,
         options: {
+          emailRedirectTo: window.location.origin,
           data: {
-            full_name: email.split('@')[0], // Using email username as full_name for demo
+            full_name: email.split('@')[0],
           },
         },
       });
@@ -65,6 +66,7 @@ export default function Login() {
         description: "Registration successful! Please check your email for verification.",
       });
     } catch (error) {
+      console.error('Signup error:', error);
       toast({
         variant: "destructive",
         title: "Error",
