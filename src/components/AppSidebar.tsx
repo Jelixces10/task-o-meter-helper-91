@@ -4,8 +4,8 @@ import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
-  SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -34,8 +34,8 @@ const items = [
     icon: Users,
   },
   {
-    title: "Accounts",
-    url: "/dashboard/accounts",
+    title: "Employees",
+    url: "/dashboard/employees",
     icon: UserCircle,
   },
 ];
