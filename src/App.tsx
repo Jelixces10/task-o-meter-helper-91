@@ -15,6 +15,7 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import Employee from "./pages/Employee";
+import Employees from "./pages/Employees";
 
 const queryClient = new QueryClient();
 
@@ -138,6 +139,14 @@ const App = () => {
                               element={
                                 <ProtectedRoute allowedRoles={['employee']}>
                                   <Employee />
+                                </ProtectedRoute>
+                              } 
+                            />
+                            <Route 
+                              path="/employees" 
+                              element={
+                                <ProtectedRoute allowedRoles={['admin']}>
+                                  <Employees />
                                 </ProtectedRoute>
                               } 
                             />
