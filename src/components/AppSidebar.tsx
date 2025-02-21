@@ -14,8 +14,17 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useContext } from "react";
+import { AuthContext } from "@/App";
 
-const items = [
+interface MenuItem {
+  title: string;
+  url: string;
+  icon: React.ElementType;
+  roles?: ('admin' | 'employee')[];
+}
+
+const items: MenuItem[] = [
   {
     title: "Dashboard",
     url: "/dashboard",
@@ -40,12 +49,14 @@ const items = [
     title: "Employees",
     url: "/dashboard/employees",
     icon: UserCircle,
+    roles: ['admin'], // Only admins can see this
   },
 ];
 
 export function AppSidebar() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { userRole } = useContext(AuthContext);
 
   const handleLogout = async () => {
     try {
@@ -66,6 +77,11 @@ export function AppSidebar() {
     }
   };
 
+  const filteredItems = items.filter(item => 
+    !item.roles || // Show items with no roles restriction
+    (userRole && item.roles.includes(userRole)) // Show items where user has required role
+  );
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -73,7 +89,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {filteredItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <Link to={item.url}>
@@ -100,4 +116,3 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
-
