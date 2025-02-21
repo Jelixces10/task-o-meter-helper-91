@@ -1,5 +1,5 @@
 
-import { MessageSquare, ListTodo, Users, UserCircle, FolderKanban, LogOut } from "lucide-react";
+import { MessageSquare, ListTodo, Users, UserCircle, FolderKanban, LogOut, UserRound } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -25,6 +25,11 @@ interface MenuItem {
 }
 
 const items: MenuItem[] = [
+  {
+    title: "Profile",
+    url: "/dashboard/profile",
+    icon: UserRound,
+  },
   {
     title: "Dashboard",
     url: "/dashboard",
@@ -116,3 +121,4 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+
