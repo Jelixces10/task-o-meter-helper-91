@@ -1,5 +1,5 @@
 
-import { MessageSquare, ListTodo, Users, UserCircle, FolderKanban } from "lucide-react";
+import { MessageSquare, ListTodo, Users, UserCircle, FolderKanban, LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,8 +9,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const items = [
   {
@@ -41,6 +44,28 @@ const items = [
 ];
 
 export function AppSidebar() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Logged out successfully",
+      });
+      navigate("/login");
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to log out",
+      });
+    }
+  };
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -62,6 +87,17 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="p-2">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleLogout}>
+              <LogOut className="w-4 h-4" />
+              <span>Logout</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }
+
