@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import Employee from "./pages/Employee";
 import Employees from "./pages/Employees";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -31,13 +31,7 @@ export const AuthContext = createContext<AuthContextType>({
   userRole: null
 });
 
-const ProtectedRoute = ({ 
-  children, 
-  allowedRoles 
-}: { 
-  children: React.ReactNode;
-  allowedRoles?: ('admin' | 'employee')[];
-}) => {
+const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: ('admin' | 'employee')[]; }) => {
   const { user, loading, userRole } = useContext(AuthContext);
 
   if (loading) {
@@ -61,7 +55,6 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and get user role
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -71,7 +64,6 @@ const App = () => {
       }
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setUser(session?.user ?? null);
@@ -150,6 +142,7 @@ const App = () => {
                                 </ProtectedRoute>
                               } 
                             />
+                            <Route path="/profile" element={<Profile />} />
                             <Route path="*" element={<NotFound />} />
                           </Routes>
                         </main>
