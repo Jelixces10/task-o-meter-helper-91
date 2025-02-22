@@ -159,9 +159,13 @@ const Admin = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select an employee" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white dark:bg-gray-800">
                   {employees.map((employee) => (
-                    <SelectItem key={employee.id} value={employee.id}>
+                    <SelectItem 
+                      key={employee.id} 
+                      value={employee.id}
+                      className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
                       {employee.full_name || 'Unnamed Employee'}
                     </SelectItem>
                   ))}
