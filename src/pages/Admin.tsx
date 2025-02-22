@@ -2,12 +2,19 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Database, Users, FileText, Settings, Plus } from "lucide-react";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthContext } from "@/App";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Admin = () => {
   const { user } = useContext(AuthContext);
@@ -16,6 +23,72 @@ const Admin = () => {
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [selectedEmployee, setSelectedEmployee] = useState<string>("");
+  const [employees, setEmployees] = useState<Array<{ id: string; full_name: string }>>([]);
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('role', 'employee');
+
+      if (error) throw error;
+      setEmployees(data || []);
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to fetch employees",
+      });
+    }
+  };
+
+  const handleCreateTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .insert([
+          {
+            title: taskTitle,
+            description: taskDescription,
+            due_date: dueDate ? new Date(dueDate).toISOString() : null,
+            created_by: user.id,
+            assigned_to: selectedEmployee || null
+          }
+        ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Task created successfully",
+      });
+
+      // Reset form
+      setTaskTitle("");
+      setTaskDescription("");
+      setDueDate("");
+      setSelectedEmployee("");
+      setIsCreating(false);
+    } catch (error) {
+      console.error('Error creating task:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create task",
+      });
+    }
+  };
 
   const stats = [
     {
@@ -48,45 +121,6 @@ const Admin = () => {
     },
   ];
 
-  const handleCreateTask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .insert([
-          {
-            title: taskTitle,
-            description: taskDescription,
-            due_date: dueDate ? new Date(dueDate).toISOString() : null,
-            created_by: user.id
-          }
-        ]);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Task created successfully",
-      });
-
-      // Reset form
-      setTaskTitle("");
-      setTaskDescription("");
-      setDueDate("");
-      setIsCreating(false);
-    } catch (error) {
-      console.error('Error creating task:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to create task",
-      });
-    }
-  };
-
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-8">
@@ -117,6 +151,22 @@ const Admin = () => {
                 value={taskDescription}
                 onChange={(e) => setTaskDescription(e.target.value)}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="assignedTo">Assign to Employee</Label>
+              <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees.map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id}>
+                      {employee.full_name || 'Unnamed Employee'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
