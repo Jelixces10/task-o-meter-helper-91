@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Database, Users, FileText, Settings, Plus } from "lucide-react";
@@ -194,7 +195,7 @@ const Admin = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select an employee" />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-800">
+                <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 shadow-lg">
                   {employees.map((employee) => (
                     <SelectItem 
                       key={employee.id} 
