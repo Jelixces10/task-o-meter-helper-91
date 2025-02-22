@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthContext } from "@/App";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Select,
   SelectContent,
@@ -26,8 +27,42 @@ const Admin = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<string>("");
   const [employees, setEmployees] = useState<Array<{ id: string; full_name: string }>>([]);
 
+  const { data: tasks, isLoading: tasksLoading } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select(`
+          *,
+          assigned_employee:profiles!tasks_assigned_to_fkey(full_name),
+          created_by_employee:profiles!tasks_created_by_fkey(full_name)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   useEffect(() => {
     fetchEmployees();
+
+    // Set up realtime subscription for tasks
+    const channel = supabase
+      .channel('tasks-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tasks' },
+        () => {
+          // Invalidate the tasks query to trigger a refresh
+          queryClient.invalidateQueries({ queryKey: ['tasks'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchEmployees = async () => {
@@ -212,6 +247,48 @@ const Admin = () => {
           </Card>
         ))}
       </div>
+
+      <Card className="p-6">
+        <h2 className="text-xl font-bold mb-4">Recent Tasks</h2>
+        <div className="space-y-4">
+          {tasksLoading ? (
+            <p>Loading tasks...</p>
+          ) : tasks && tasks.length > 0 ? (
+            tasks.map((task) => (
+              <Card key={task.id} className="p-4 hover:bg-gray-50 transition-colors">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold">{task.title}</h3>
+                    {task.description && (
+                      <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">
+                      Assigned to: {task.assigned_employee?.full_name || 'Unassigned'}
+                    </p>
+                    {task.due_date && (
+                      <p className="text-sm text-gray-600">
+                        Due: {new Date(task.due_date).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-2 flex justify-between items-center">
+                  <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                    {task.status}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    Created by: {task.created_by_employee?.full_name}
+                  </span>
+                </div>
+              </Card>
+            ))
+          ) : (
+            <p>No tasks found</p>
+          )}
+        </div>
+      </Card>
     </div>
   );
 };
