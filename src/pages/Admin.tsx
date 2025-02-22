@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Database, Users, FileText, Settings, Plus } from "lucide-react";
@@ -8,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthContext } from "@/App";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
   Select,
   SelectContent,
@@ -20,6 +19,7 @@ import {
 const Admin = () => {
   const { user } = useContext(AuthContext);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
@@ -63,7 +63,7 @@ const Admin = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [queryClient]);
 
   const fetchEmployees = async () => {
     try {
