@@ -16,6 +16,7 @@ import Admin from "./pages/Admin";
 import Employee from "./pages/Employee";
 import Employees from "./pages/Employees";
 import Profile from "./pages/Profile";
+import Projects from "./pages/Projects";
 
 const queryClient = new QueryClient();
 
@@ -143,6 +144,14 @@ const App = () => {
                               } 
                             />
                             <Route path="/profile" element={<Profile />} />
+                            <Route 
+                              path="/projects" 
+                              element={
+                                <ProtectedRoute>
+                                  <Projects />
+                                </ProtectedRoute>
+                              } 
+                            />
                             <Route path="*" element={<NotFound />} />
                           </Routes>
                         </main>
