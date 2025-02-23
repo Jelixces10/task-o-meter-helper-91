@@ -22,6 +22,10 @@ interface Task {
   remarks: string | null;
   due_date: string | null;
   created_at: string;
+  assigned_to: string | null;
+  created_by: string;
+  priority: string;
+  updated_at: string | null;
 }
 
 export default function Employee() {
