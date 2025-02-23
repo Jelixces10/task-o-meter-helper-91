@@ -82,7 +82,7 @@ export type Database = {
           id: string
           priority: string
           remarks: string | null
-          status: string
+          status: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at: string | null
         }
@@ -95,7 +95,7 @@ export type Database = {
           id?: string
           priority?: string
           remarks?: string | null
-          status?: string
+          status?: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at?: string | null
         }
@@ -108,7 +108,7 @@ export type Database = {
           id?: string
           priority?: string
           remarks?: string | null
-          status?: string
+          status?: Database["public"]["Enums"]["task_status"]
           title?: string
           updated_at?: string | null
         }
@@ -137,6 +137,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      task_status: "pending" | "processing" | "completed"
       user_role: "admin" | "employee"
     }
     CompositeTypes: {
