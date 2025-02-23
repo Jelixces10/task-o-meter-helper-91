@@ -33,6 +33,45 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          budget: number
+          client_email: string
+          client_name: string
+          created_at: string | null
+          deadline: string
+          description: string | null
+          id: string
+          name: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          budget: number
+          client_email: string
+          client_name: string
+          created_at?: string | null
+          deadline: string
+          description?: string | null
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          budget?: number
+          client_email?: string
+          client_name?: string
+          created_at?: string | null
+          deadline?: string
+          description?: string | null
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assigned_to: string | null
