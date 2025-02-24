@@ -1,53 +1,31 @@
-import { Database, Clock, Eye, CheckCircle } from "lucide-react";
-import MetricCard from "@/components/MetricCard";
+
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "@/App";
 
 const Index = () => {
-  // Mock data - in a real app, this would come from an API
-  const metrics = [
-    {
-      title: "Total Projects",
-      value: 125,
-      icon: Database,
-      description: "Total projects in the system",
-    },
-    {
-      title: "Pending",
-      value: 42,
-      icon: Clock,
-      description: "Projects awaiting action",
-    },
-    {
-      title: "To Review",
-      value: 15,
-      icon: Eye,
-      description: "Projects needing review",
-    },
-    {
-      title: "Completed",
-      value: 68,
-      icon: CheckCircle,
-      description: "Successfully completed projects",
-    },
-  ];
+  const navigate = useNavigate();
+  const { userRole } = useContext(AuthContext);
 
+  useEffect(() => {
+    if (userRole === 'admin') {
+      navigate('/dashboard/admin');
+    } else if (userRole === 'employee') {
+      navigate('/dashboard/employee');
+    }
+  }, [userRole, navigate]);
+
+  // Show loading state while determining role
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard Overview</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {metrics.map((metric) => (
-            <MetricCard
-              key={metric.title}
-              title={metric.title}
-              value={metric.value}
-              icon={metric.icon}
-              description={metric.description}
-            />
-          ))}
-        </div>
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <h2 className="text-xl font-semibold text-gray-700">Loading dashboard...</h2>
+        <p className="text-sm text-gray-500 mt-2">Please wait while we redirect you...</p>
       </div>
     </div>
   );
 };
 
 export default Index;
+
