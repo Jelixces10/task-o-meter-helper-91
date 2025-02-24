@@ -26,7 +26,9 @@ const Admin = () => {
   const [taskDescription, setTaskDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState<string>("");
+  const [selectedProject, setSelectedProject] = useState<string>("");
   const [employees, setEmployees] = useState<Array<{ id: string; full_name: string }>>([]);
+  const [projects, setProjects] = useState<Array<{ id: string; name: string }>>([]);
 
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks'],
@@ -36,7 +38,8 @@ const Admin = () => {
         .select(`
           *,
           assigned_employee:profiles!tasks_assigned_to_fkey(full_name),
-          created_by_employee:profiles!tasks_created_by_fkey(full_name)
+          created_by_employee:profiles!tasks_created_by_fkey(full_name),
+          project:projects(name)
         `)
         .order('created_at', { ascending: false });
 
@@ -47,6 +50,7 @@ const Admin = () => {
 
   useEffect(() => {
     fetchEmployees();
+    fetchProjects();
 
     // Set up realtime subscription for tasks
     const channel = supabase
@@ -85,6 +89,25 @@ const Admin = () => {
     }
   };
 
+  const fetchProjects = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, name')
+        .order('name');
+
+      if (error) throw error;
+      setProjects(data || []);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to fetch projects",
+      });
+    }
+  };
+
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -99,7 +122,8 @@ const Admin = () => {
             description: taskDescription,
             due_date: dueDate ? new Date(dueDate).toISOString() : null,
             created_by: user.id,
-            assigned_to: selectedEmployee || null
+            assigned_to: selectedEmployee || null,
+            project_id: selectedProject || null
           }
         ]);
 
@@ -115,6 +139,7 @@ const Admin = () => {
       setTaskDescription("");
       setDueDate("");
       setSelectedEmployee("");
+      setSelectedProject("");
       setIsCreating(false);
     } catch (error) {
       console.error('Error creating task:', error);
@@ -190,6 +215,26 @@ const Admin = () => {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="project">Project</Label>
+              <Select value={selectedProject} onValueChange={setSelectedProject}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a project" />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 shadow-lg">
+                  {projects.map((project) => (
+                    <SelectItem 
+                      key={project.id} 
+                      value={project.id}
+                      className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="assignedTo">Assign to Employee</Label>
               <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
                 <SelectTrigger>
@@ -262,6 +307,11 @@ const Admin = () => {
                     <h3 className="font-semibold">{task.title}</h3>
                     {task.description && (
                       <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                    )}
+                    {task.project && (
+                      <p className="text-sm text-blue-600 mt-1">
+                        Project: {task.project.name}
+                      </p>
                     )}
                   </div>
                   <div className="text-right">
