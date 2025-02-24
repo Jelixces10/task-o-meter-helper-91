@@ -1,7 +1,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Database, Users, FileText, Settings, Plus } from "lucide-react";
+import { Database, FileText, Settings, Plus } from "lucide-react";
 import { useState, useContext, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthContext } from "@/App";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 import { 
   Select,
   SelectContent,
@@ -29,6 +30,20 @@ const Admin = () => {
   const [selectedProject, setSelectedProject] = useState<string>("");
   const [employees, setEmployees] = useState<Array<{ id: string; full_name: string }>>([]);
   const [projects, setProjects] = useState<Array<{ id: string; name: string }>>([]);
+
+  // Query for pending tasks count
+  const { data: pendingTasksCount = 0, isLoading: isLoadingCount } = useQuery({
+    queryKey: ['pendingTasksCount'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+
+      if (error) throw error;
+      return count || 0;
+    },
+  });
 
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks'],
@@ -59,8 +74,9 @@ const Admin = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'tasks' },
         () => {
-          // Invalidate the tasks query to trigger a refresh
+          // Invalidate both tasks and pending tasks count queries
           queryClient.invalidateQueries({ queryKey: ['tasks'] });
+          queryClient.invalidateQueries({ queryKey: ['pendingTasksCount'] });
         }
       )
       .subscribe();
@@ -153,11 +169,11 @@ const Admin = () => {
 
   const stats = [
     {
-      title: "Total Users",
-      value: "2,345",
-      icon: Users,
+      title: "Pending Tasks",
+      value: isLoadingCount ? "Loading..." : pendingTasksCount.toString(),
+      icon: FileText,
       change: "+12%",
-      description: "Active users this month",
+      description: "Tasks awaiting completion",
     },
     {
       title: "Projects",
