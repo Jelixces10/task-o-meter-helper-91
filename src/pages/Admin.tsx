@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Settings, Plus } from "lucide-react";
@@ -31,9 +30,9 @@ const Admin = () => {
   const [employees, setEmployees] = useState<Array<{ id: string; full_name: string }>>([]);
   const [projects, setProjects] = useState<Array<{ id: string; name: string }>>([]);
 
-  // Query for pending tasks count
+  // Query for current pending tasks count
   const { data: pendingTasksCount = 0, isLoading: isLoadingPending } = useQuery({
-    queryKey: ['pendingTasksCount'],
+    queryKey: ['pendingTasksCount', 'current'],
     queryFn: async () => {
       const { count, error } = await supabase
         .from('tasks')
@@ -45,9 +44,27 @@ const Admin = () => {
     },
   });
 
-  // Query for completed tasks count
+  // Query for previous week's pending tasks count
+  const { data: previousPendingCount = 0 } = useQuery({
+    queryKey: ['pendingTasksCount', 'previous'],
+    queryFn: async () => {
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      
+      const { count, error } = await supabase
+        .from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending')
+        .lt('created_at', oneWeekAgo.toISOString());
+
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  // Query for current completed tasks count
   const { data: completedTasksCount = 0, isLoading: isLoadingCompleted } = useQuery({
-    queryKey: ['completedTasksCount'],
+    queryKey: ['completedTasksCount', 'current'],
     queryFn: async () => {
       const { count, error } = await supabase
         .from('tasks')
@@ -59,9 +76,27 @@ const Admin = () => {
     },
   });
 
-  // Query for total projects count
+  // Query for previous week's completed tasks count
+  const { data: previousCompletedCount = 0 } = useQuery({
+    queryKey: ['completedTasksCount', 'previous'],
+    queryFn: async () => {
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      
+      const { count, error } = await supabase
+        .from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'completed')
+        .lt('created_at', oneWeekAgo.toISOString());
+
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  // Query for current projects count
   const { data: projectsCount = 0, isLoading: isLoadingProjects } = useQuery({
-    queryKey: ['projectsCount'],
+    queryKey: ['projectsCount', 'current'],
     queryFn: async () => {
       const { count, error } = await supabase
         .from('projects')
@@ -71,6 +106,30 @@ const Admin = () => {
       return count || 0;
     },
   });
+
+  // Query for previous week's projects count
+  const { data: previousProjectsCount = 0 } = useQuery({
+    queryKey: ['projectsCount', 'previous'],
+    queryFn: async () => {
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      
+      const { count, error } = await supabase
+        .from('projects')
+        .select('*', { count: 'exact', head: true })
+        .lt('created_at', oneWeekAgo.toISOString());
+
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  // Calculate percentage changes
+  const calculatePercentageChange = (current: number, previous: number) => {
+    if (previous === 0) return current > 0 ? '+100%' : '0%';
+    const change = ((current - previous) / previous) * 100;
+    return `${change > 0 ? '+' : ''}${change.toFixed(1)}%`;
+  };
 
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks'],
@@ -212,21 +271,21 @@ const Admin = () => {
       title: "Pending Tasks",
       value: isLoadingPending ? "Loading..." : pendingTasksCount.toString(),
       icon: FileText,
-      change: "+12%",
+      change: calculatePercentageChange(pendingTasksCount, previousPendingCount),
       description: "Tasks awaiting completion",
     },
     {
       title: "Done Tasks",
       value: isLoadingCompleted ? "Loading..." : completedTasksCount.toString(),
       icon: FileText,
-      change: "+8%",
+      change: calculatePercentageChange(completedTasksCount, previousCompletedCount),
       description: "Completed tasks",
     },
     {
       title: "Projects",
       value: isLoadingProjects ? "Loading..." : projectsCount.toString(),
       icon: FileText,
-      change: "+5%",
+      change: calculatePercentageChange(projectsCount, previousProjectsCount),
       description: "Total active projects",
     },
     {
