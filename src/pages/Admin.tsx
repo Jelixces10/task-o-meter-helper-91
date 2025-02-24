@@ -1,7 +1,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Database, FileText, Settings, Plus } from "lucide-react";
+import { FileText, Settings, Plus } from "lucide-react";
 import { useState, useContext, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,13 +32,40 @@ const Admin = () => {
   const [projects, setProjects] = useState<Array<{ id: string; name: string }>>([]);
 
   // Query for pending tasks count
-  const { data: pendingTasksCount = 0, isLoading: isLoadingCount } = useQuery({
+  const { data: pendingTasksCount = 0, isLoading: isLoadingPending } = useQuery({
     queryKey: ['pendingTasksCount'],
     queryFn: async () => {
       const { count, error } = await supabase
         .from('tasks')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
+
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  // Query for completed tasks count
+  const { data: completedTasksCount = 0, isLoading: isLoadingCompleted } = useQuery({
+    queryKey: ['completedTasksCount'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'completed');
+
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  // Query for total projects count
+  const { data: projectsCount = 0, isLoading: isLoadingProjects } = useQuery({
+    queryKey: ['projectsCount'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('projects')
+        .select('*', { count: 'exact', head: true });
 
       if (error) throw error;
       return count || 0;
@@ -67,22 +94,35 @@ const Admin = () => {
     fetchEmployees();
     fetchProjects();
 
-    // Set up realtime subscription for tasks
-    const channel = supabase
+    // Set up realtime subscription for tasks and projects
+    const tasksChannel = supabase
       .channel('tasks-changes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'tasks' },
         () => {
-          // Invalidate both tasks and pending tasks count queries
+          // Invalidate all tasks-related queries
           queryClient.invalidateQueries({ queryKey: ['tasks'] });
           queryClient.invalidateQueries({ queryKey: ['pendingTasksCount'] });
+          queryClient.invalidateQueries({ queryKey: ['completedTasksCount'] });
+        }
+      )
+      .subscribe();
+
+    const projectsChannel = supabase
+      .channel('projects-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'projects' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['projectsCount'] });
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(tasksChannel);
+      supabase.removeChannel(projectsChannel);
     };
   }, [queryClient]);
 
@@ -170,24 +210,24 @@ const Admin = () => {
   const stats = [
     {
       title: "Pending Tasks",
-      value: isLoadingCount ? "Loading..." : pendingTasksCount.toString(),
+      value: isLoadingPending ? "Loading..." : pendingTasksCount.toString(),
       icon: FileText,
       change: "+12%",
       description: "Tasks awaiting completion",
     },
     {
-      title: "Projects",
-      value: "432",
+      title: "Done Tasks",
+      value: isLoadingCompleted ? "Loading..." : completedTasksCount.toString(),
       icon: FileText,
       change: "+8%",
-      description: "Total ongoing projects",
+      description: "Completed tasks",
     },
     {
-      title: "Database Size",
-      value: "1.2 GB",
-      icon: Database,
+      title: "Projects",
+      value: isLoadingProjects ? "Loading..." : projectsCount.toString(),
+      icon: FileText,
       change: "+5%",
-      description: "Storage usage",
+      description: "Total active projects",
     },
     {
       title: "System Status",
