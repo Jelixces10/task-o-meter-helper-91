@@ -48,19 +48,32 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data: { user }, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: window.location.origin,
           data: {
             full_name: email.split('@')[0],
-            role: 'client',
+            role: 'client' as const,
           },
         },
       });
 
       if (error) throw error;
+
+      // Create or update the profile immediately after signup
+      if (user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            full_name: email.split('@')[0],
+            role: 'client',
+          });
+
+        if (profileError) throw profileError;
+      }
 
       toast({
         title: "Success",
