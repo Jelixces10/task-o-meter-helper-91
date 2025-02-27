@@ -56,21 +56,21 @@ export default function Login() {
           emailRedirectTo: window.location.origin,
           data: {
             full_name: email.split('@')[0],
-            role: 'client' as const,
+            role: 'client',
           },
         },
       });
 
       if (error) throw error;
 
-      // Create or update the profile immediately after signup
+      // Create or update the profile with explicit type
       if (user) {
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert({
             id: user.id,
             full_name: email.split('@')[0],
-            role: 'client' as Database["public"]["Enums"]["user_role"], // Temporarily set as employee
+            role: 'client' as Database["public"]["Enums"]["user_role"],
           });
 
         if (profileError) throw profileError;
