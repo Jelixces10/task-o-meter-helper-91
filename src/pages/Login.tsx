@@ -70,7 +70,7 @@ export default function Login() {
           .upsert({
             id: user.id,
             full_name: email.split('@')[0],
-            role: 'employee' as Database["public"]["Enums"]["user_role"], // Temporarily set as employee
+            role: 'client' as Database["public"]["Enums"]["user_role"], // Temporarily set as employee
           });
 
         if (profileError) throw profileError;
