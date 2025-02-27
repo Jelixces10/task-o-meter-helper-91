@@ -129,7 +129,7 @@ export default function Employee() {
                   <SelectTrigger id={`status-${task.id}`}>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 shadow-lg">
+                  <SelectContent>
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="processing">Processing</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
