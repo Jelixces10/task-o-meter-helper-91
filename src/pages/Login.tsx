@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -69,7 +70,7 @@ export default function Login() {
           .upsert({
             id: user.id,
             full_name: email.split('@')[0],
-            role: 'client',
+            role: 'employee' as Database["public"]["Enums"]["user_role"], // Temporarily set as employee
           });
 
         if (profileError) throw profileError;
