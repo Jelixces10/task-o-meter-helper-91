@@ -12,7 +12,7 @@ import { Loader2 } from "lucide-react";
 interface Profile {
   id: string;
   full_name: string | null;
-  role: 'admin' | 'employee' | 'client';
+  role: 'admin' | 'employee';
   created_at: string;
 }
 

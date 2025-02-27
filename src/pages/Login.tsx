@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -49,32 +48,18 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const { data: { user }, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: window.location.origin,
           data: {
             full_name: email.split('@')[0],
-            role: 'client',
           },
         },
       });
 
       if (error) throw error;
-
-      // Create or update the profile with explicit type
-      if (user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: user.id,
-            full_name: email.split('@')[0],
-            role: 'client' as Database["public"]["Enums"]["user_role"],
-          });
-
-        if (profileError) throw profileError;
-      }
 
       toast({
         title: "Success",
