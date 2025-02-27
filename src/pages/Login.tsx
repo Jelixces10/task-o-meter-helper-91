@@ -55,6 +55,7 @@ export default function Login() {
           emailRedirectTo: window.location.origin,
           data: {
             full_name: email.split('@')[0],
+            role: 'client', // Changed from 'employee' to 'client'
           },
         },
       });
