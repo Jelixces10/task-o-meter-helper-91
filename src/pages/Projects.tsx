@@ -168,7 +168,7 @@ const Projects = () => {
   };
 
   // Determine if client email field should be readonly
-  const isClientEmailReadonly = userRole === 'client' && user?.email;
+  const isClientEmailReadonly = !!(userRole === 'client' && user?.email);
 
   return (
     <div className="container mx-auto py-6 space-y-6">
