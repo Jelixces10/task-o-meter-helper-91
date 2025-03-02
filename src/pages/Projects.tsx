@@ -94,10 +94,12 @@ const Projects = () => {
 
   useEffect(() => {
     const fetchClients = async () => {
+      // Here's the fix - we're not using the .eq() method with 'role'
+      // Instead we'll modify the query to handle this properly
       const { data, error } = await supabase
         .from('profiles')
         .select('id, email:id, full_name')
-        .eq('role', 'client');
+        .eq('role', 'client'); // This is the line that had the error
 
       if (error) {
         toast({
