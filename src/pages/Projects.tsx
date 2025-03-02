@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { AuthContext } from "@/App";
 
 type Project = {
   id: string;
@@ -59,6 +60,7 @@ const initialFormData: ProjectFormData = {
 
 const Projects = () => {
   const { toast } = useToast();
+  const { user, userRole } = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState<ProjectFormData>(initialFormData);
@@ -67,10 +69,16 @@ const Projects = () => {
   const { data: projects = [], refetch } = useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // For client users, only fetch their projects
+      let query = supabase.from('projects').select('*');
+      
+      if (userRole === 'client' && user?.email) {
+        query = query.eq('client_email', user.email);
+      }
+      
+      query = query.order('created_at', { ascending: false });
+      
+      const { data, error } = await query;
 
       if (error) {
         toast({
@@ -93,6 +101,11 @@ const Projects = () => {
       ...formData,
       budget: parseFloat(formData.budget),
     };
+
+    // For client users, ensure they can only create/edit projects with their email
+    if (userRole === 'client' && user?.email) {
+      projectData.client_email = user.email;
+    }
 
     const { error } = editingProject
       ? await supabase
@@ -125,6 +138,16 @@ const Projects = () => {
   };
 
   const handleEditProject = (project: Project) => {
+    // For client users, only allow editing their own projects
+    if (userRole === 'client' && user?.email && project.client_email !== user.email) {
+      toast({
+        title: "Access Denied",
+        description: "You can only edit your own projects",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setFormData({
       name: project.name,
       description: project.description,
@@ -143,6 +166,9 @@ const Projects = () => {
     setFormData(initialFormData);
     setEditingProject(null);
   };
+
+  // Determine if client email field should be readonly
+  const isClientEmailReadonly = userRole === 'client' && user?.email;
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -211,11 +237,13 @@ const Projects = () => {
                 <Input
                   id="client_email"
                   type="email"
-                  value={formData.client_email}
+                  value={isClientEmailReadonly ? user?.email || '' : formData.client_email}
                   onChange={(e) =>
                     setFormData({ ...formData, client_email: e.target.value })
                   }
                   required
+                  readOnly={isClientEmailReadonly}
+                  className={isClientEmailReadonly ? "bg-gray-100" : ""}
                 />
               </div>
               <div className="space-y-2">
