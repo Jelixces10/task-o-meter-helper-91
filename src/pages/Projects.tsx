@@ -1,3 +1,4 @@
+
 import { useState, useContext, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,10 +19,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { AuthContext } from "@/App";
 import {
@@ -78,6 +89,8 @@ const Projects = () => {
   const [formData, setFormData] = useState<ProjectFormData>(initialFormData);
   const [editingProject, setEditingProject] = useState<string | null>(null);
   const [clients, setClients] = useState<ClientProfile[]>([]);
+  const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -191,6 +204,37 @@ const Projects = () => {
     });
     setEditingProject(project.id);
     setIsDialogOpen(true);
+  };
+
+  const handleDeleteProject = async () => {
+    if (!deleteProjectId) return;
+    
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', deleteProjectId);
+    
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete project",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Project deleted successfully",
+      });
+      refetch();
+    }
+    
+    setDeleteProjectId(null);
+    setIsDeleteDialogOpen(false);
+  };
+
+  const openDeleteDialog = (projectId: string) => {
+    setDeleteProjectId(projectId);
+    setIsDeleteDialogOpen(true);
   };
 
   const handleCloseDialog = () => {
@@ -402,7 +446,7 @@ const Projects = () => {
                   <TableCell>
                     {new Date(project.deadline).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="flex gap-1">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -410,6 +454,15 @@ const Projects = () => {
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
+                    {userRole === 'admin' && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openDeleteDialog(project.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -424,6 +477,27 @@ const Projects = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              project and remove all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteProjectId(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteProject}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
