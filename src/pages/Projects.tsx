@@ -1,5 +1,4 @@
-
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -25,6 +24,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { AuthContext } from "@/App";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Project = {
   id: string;
@@ -48,6 +54,12 @@ type ProjectFormData = {
   deadline: string;
 };
 
+type ClientProfile = {
+  id: string;
+  email: string;
+  full_name: string | null;
+};
+
 const initialFormData: ProjectFormData = {
   name: "",
   description: "",
@@ -65,11 +77,33 @@ const Projects = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState<ProjectFormData>(initialFormData);
   const [editingProject, setEditingProject] = useState<string | null>(null);
+  const [clients, setClients] = useState<ClientProfile[]>([]);
+
+  useEffect(() => {
+    const fetchClients = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, email:id, full_name')
+        .eq('role', 'client');
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch client profiles",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setClients(data || []);
+    };
+
+    fetchClients();
+  }, [toast]);
 
   const { data: projects = [], refetch } = useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
-      // For client users, only fetch their projects
       let query = supabase.from('projects').select('*');
       
       if (userRole === 'client' && user?.email) {
@@ -102,7 +136,6 @@ const Projects = () => {
       budget: parseFloat(formData.budget),
     };
 
-    // For client users, ensure they can only create/edit projects with their email
     if (userRole === 'client' && user?.email) {
       projectData.client_email = user.email;
     }
@@ -138,7 +171,6 @@ const Projects = () => {
   };
 
   const handleEditProject = (project: Project) => {
-    // For client users, only allow editing their own projects
     if (userRole === 'client' && user?.email && project.client_email !== user.email) {
       toast({
         title: "Access Denied",
@@ -167,7 +199,17 @@ const Projects = () => {
     setEditingProject(null);
   };
 
-  // Determine if client email field should be readonly
+  const handleClientSelect = (email: string) => {
+    const selectedClient = clients.find(client => client.email === email);
+    if (selectedClient) {
+      setFormData({
+        ...formData,
+        client_email: email,
+        client_name: selectedClient.full_name || email.split('@')[0],
+      });
+    }
+  };
+
   const isClientEmailReadonly = !!(userRole === 'client' && user?.email);
 
   return (
@@ -221,31 +263,78 @@ const Projects = () => {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="client_name">Client Name</Label>
-                <Input
-                  id="client_name"
-                  value={formData.client_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, client_name: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="client_email">Client Email</Label>
-                <Input
-                  id="client_email"
-                  type="email"
-                  value={isClientEmailReadonly ? user?.email || '' : formData.client_email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, client_email: e.target.value })
-                  }
-                  required
-                  readOnly={isClientEmailReadonly}
-                  className={isClientEmailReadonly ? "bg-gray-100" : ""}
-                />
-              </div>
+              {userRole !== 'client' && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="client_select">Client</Label>
+                    <Select 
+                      value={formData.client_email} 
+                      onValueChange={handleClientSelect}
+                    >
+                      <SelectTrigger id="client_select">
+                        <SelectValue placeholder="Select a client" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clients.map((client) => (
+                          <SelectItem key={client.email} value={client.email}>
+                            {client.full_name || client.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="client_name">Client Name</Label>
+                    <Input
+                      id="client_name"
+                      value={formData.client_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, client_name: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="client_email">Client Email</Label>
+                    <Input
+                      id="client_email"
+                      type="email"
+                      value={formData.client_email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, client_email: e.target.value })
+                      }
+                      required
+                      readOnly={isClientEmailReadonly}
+                      className={isClientEmailReadonly ? "bg-gray-100" : ""}
+                    />
+                  </div>
+                </>
+              )}
+              {userRole === 'client' && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="client_name">Client Name</Label>
+                    <Input
+                      id="client_name"
+                      value={formData.client_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, client_name: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="client_email">Client Email</Label>
+                    <Input
+                      id="client_email"
+                      type="email"
+                      value={user?.email || ''}
+                      readOnly
+                      className="bg-gray-100"
+                    />
+                  </div>
+                </>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="budget">Budget</Label>
                 <Input
