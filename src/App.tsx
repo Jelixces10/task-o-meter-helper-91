@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +15,7 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import Employee from "./pages/Employee";
+import Client from "./pages/Client";
 import Employees from "./pages/Employees";
 import Profile from "./pages/Profile";
 import Projects from "./pages/Projects";
@@ -23,7 +25,7 @@ const queryClient = new QueryClient();
 type AuthContextType = {
   user: User | null;
   loading: boolean;
-  userRole: 'admin' | 'employee' | null;
+  userRole: 'admin' | 'employee' | 'client' | null;
 };
 
 export const AuthContext = createContext<AuthContextType>({ 
@@ -32,7 +34,7 @@ export const AuthContext = createContext<AuthContextType>({
   userRole: null
 });
 
-const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: ('admin' | 'employee')[]; }) => {
+const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: ('admin' | 'employee' | 'client')[]; }) => {
   const { user, loading, userRole } = useContext(AuthContext);
 
   if (loading) {
@@ -52,7 +54,7 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode;
 
 const App = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<'admin' | 'employee' | null>(null);
+  const [userRole, setUserRole] = useState<'admin' | 'employee' | 'client' | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -132,6 +134,14 @@ const App = () => {
                               element={
                                 <ProtectedRoute allowedRoles={['employee']}>
                                   <Employee />
+                                </ProtectedRoute>
+                              } 
+                            />
+                            <Route 
+                              path="/client" 
+                              element={
+                                <ProtectedRoute allowedRoles={['client']}>
+                                  <Client />
                                 </ProtectedRoute>
                               } 
                             />

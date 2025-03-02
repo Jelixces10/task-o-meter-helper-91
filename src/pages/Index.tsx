@@ -13,6 +13,8 @@ const Index = () => {
       navigate('/dashboard/admin');
     } else if (userRole === 'employee') {
       navigate('/dashboard/employee');
+    } else if (userRole === 'client') {
+      navigate('/dashboard/client');
     }
   }, [userRole, navigate]);
 
@@ -28,4 +30,3 @@ const Index = () => {
 };
 
 export default Index;
-
