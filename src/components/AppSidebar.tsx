@@ -21,7 +21,7 @@ interface MenuItem {
   title: string;
   url: string;
   icon: React.ElementType;
-  roles?: ('admin' | 'employee')[];
+  roles?: ('admin' | 'employee' | 'client')[];
 }
 
 const items: MenuItem[] = [
@@ -49,6 +49,7 @@ const items: MenuItem[] = [
     title: "Clients",
     url: "/dashboard/clients",
     icon: Users,
+    roles: ['admin', 'employee'], // Only admins and employees can see this
   },
   {
     title: "Employees",
