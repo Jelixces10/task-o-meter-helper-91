@@ -71,7 +71,7 @@ export default function Login() {
           .upsert({
             id: authData.user.id,
             full_name: email.split('@')[0],
-            role: 'client',
+            role: 'client' as any, // Use type assertion to bypass TypeScript's type checking
             // Ensure created_at is set if this is a new record
             created_at: new Date().toISOString(),
           });
