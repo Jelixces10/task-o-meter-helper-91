@@ -74,7 +74,7 @@ export default function Login() {
             full_name: email.split('@')[0],
             // Use 'employee' as a fallback role that fits the type
             // The DB will still receive 'client' from the auth metadata
-            role: 'employee', 
+            role: authData.user.user_metadata?.role ?? 'client'
             created_at: new Date().toISOString(),
           });
 
