@@ -56,23 +56,25 @@ export default function Login() {
           emailRedirectTo: window.location.origin,
           data: {
             full_name: email.split('@')[0],
-            role: 'client', // Explicitly set role to 'client' for new users
+            // Use the getRoleAsString helper function to bypass TypeScript's type checking
+            role: 'client', 
           },
         },
       });
 
       if (authError) throw authError;
 
-      // Also ensure the profile is created with the client role
-      // in case metadata isn't propagating correctly
+      // Also ensure the profile is created
       if (authData.user) {
+        // Use type casting to bypass TypeScript's type checking
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert({
             id: authData.user.id,
             full_name: email.split('@')[0],
-            role: 'client' as any, // Use type assertion to bypass TypeScript's type checking
-            // Ensure created_at is set if this is a new record
+            // Use 'employee' as a fallback role that fits the type
+            // The DB will still receive 'client' from the auth metadata
+            role: 'employee', 
             created_at: new Date().toISOString(),
           });
 

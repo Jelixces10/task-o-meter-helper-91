@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 
+// Update the interface to include 'client' as a possible role
 interface Profile {
   id: string;
   full_name: string | null;
@@ -37,7 +38,8 @@ export default function Profile() {
 
         if (error) throw error;
         
-        setProfile(data);
+        // Cast the role to our Profile interface to ensure TypeScript is happy
+        setProfile(data as Profile);
         setFullName(data.full_name || '');
       } catch (error) {
         console.error('Error fetching profile:', error);

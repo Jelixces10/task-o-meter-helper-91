@@ -1,3 +1,4 @@
+
 import { MessageSquare, ListTodo, Users, UserCircle, FolderKanban, LogOut, UserRound } from "lucide-react";
 import {
   Sidebar,
@@ -84,7 +85,7 @@ export function AppSidebar() {
 
   const filteredItems = items.filter(item => 
     !item.roles || // Show items with no roles restriction
-    (userRole && item.roles.includes(userRole as any)) // Show items where user has required role
+    (userRole && item.roles.includes(userRole)) // Show items where user has required role
   );
 
   return (

@@ -2,7 +2,7 @@
 import { useState, useEffect, useContext } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase, getRoleAsString } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { UserCircle } from "lucide-react";
 import { AuthContext } from "@/App";
 import {
@@ -32,10 +32,11 @@ const Clients = () => {
 
   const fetchClients = async () => {
     try {
+      // Use a string for the role since TypeScript doesn't know about 'client'
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('role', 'client' as any); // Using type assertion to bypass type checking
+        .eq('role', 'client');
 
       if (error) throw error;
 

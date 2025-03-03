@@ -23,10 +23,13 @@ import Projects from "./pages/Projects";
 
 const queryClient = new QueryClient();
 
+// Update the type to include 'client' as a string literal type
+type UserRole = 'admin' | 'employee' | 'client' | null;
+
 type AuthContextType = {
   user: User | null;
   loading: boolean;
-  userRole: 'admin' | 'employee' | 'client' | null;
+  userRole: UserRole;
 };
 
 export const AuthContext = createContext<AuthContextType>({ 
@@ -55,7 +58,7 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode;
 
 const App = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<'admin' | 'employee' | 'client' | null>(null);
+  const [userRole, setUserRole] = useState<UserRole>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -97,8 +100,14 @@ const App = () => {
       setLoading(false);
       return;
     }
-
-    setUserRole(data.role);
+    
+    // Handle the role as a string, which allows for 'client' even though TypeScript doesn't know about it
+    // The database knows about 'client' as a valid role
+    if (data && data.role) {
+      // Cast the role to our UserRole type to ensure TypeScript is happy
+      setUserRole(data.role as UserRole);
+    }
+    
     setLoading(false);
   };
 

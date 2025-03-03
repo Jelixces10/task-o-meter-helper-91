@@ -41,6 +41,7 @@ export default function Client() {
 
   const fetchTasks = async () => {
     try {
+      // Type safety is maintained here since we're querying based on user.id
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
