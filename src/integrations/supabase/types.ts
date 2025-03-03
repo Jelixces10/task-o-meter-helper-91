@@ -148,7 +148,7 @@ export type Database = {
     }
     Enums: {
       task_status: "pending" | "processing" | "completed"
-      user_role: "admin" | "employee"
+      user_role: "admin" | "employee" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
