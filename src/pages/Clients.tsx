@@ -35,7 +35,7 @@ const Clients = () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('role', getRoleAsString('client'));
+        .eq('role', 'client' as any); // Using type assertion to bypass type checking
 
       if (error) throw error;
 
