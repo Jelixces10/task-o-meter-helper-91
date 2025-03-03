@@ -48,7 +48,8 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      // First sign up the user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -60,7 +61,25 @@ export default function Login() {
         },
       });
 
-      if (error) throw error;
+      if (authError) throw authError;
+
+      // Also ensure the profile is created with the client role
+      // in case metadata isn't propagating correctly
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: authData.user.id,
+            full_name: email.split('@')[0],
+            role: 'client',
+            // Ensure created_at is set if this is a new record
+            created_at: new Date().toISOString(),
+          });
+
+        if (profileError) {
+          console.error('Error creating profile:', profileError);
+        }
+      }
 
       toast({
         title: "Success",
